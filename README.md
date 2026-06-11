@@ -2,18 +2,44 @@
 
 Standalone local AI subscription bridge for Personal Assistant-compatible backends.
 
-This repository will package a generic `ai-subscription-bridge` CLI plus a compatibility alias named `personal-assistant-bridge`. The bridge lets a trusted backend lease jobs while execution happens locally through an already-authenticated Codex CLI subscription, avoiding provider API keys in the backend.
+The package exposes a generic `ai-subscription-bridge` CLI plus a compatibility alias named `personal-assistant-bridge`. A trusted backend leases jobs to this local process while execution happens through a locally authenticated Codex CLI subscription. Backend services do not need provider API keys for the local Codex execution path.
 
-## Status
+## Install
 
-Initial package skeleton for the approved BUILD implementation. Full protocol, config, adapter, executor, runner, tests, and documentation are implemented in follow-up commits on this feature branch.
+```bash
+uv tool install git+https://github.com/sr-codefreak/personal-assistant-bridge.git
+# or from a checkout
+uv sync --all-extras --dev
+```
+
+## Personal Assistant quickstart
+
+Use the API base URL including `/api/v1`:
+
+```bash
+printf '%s' '<pairing-code>' | ai-subscription-bridge pair \
+  --api-url http://localhost:8080/api/v1 \
+  --executor codex \
+  --code-stdin
+
+ai-subscription-bridge doctor
+ai-subscription-bridge run --once
+```
+
+For deterministic smoke tests without Codex:
+
+```bash
+ai-subscription-bridge run --once --executor fake
+```
 
 ## Security posture
 
-- Pairing and bridge tokens are local secrets.
+- Pairing codes and bridge tokens are local secrets.
 - Prompts are sent to Codex over stdin, not argv.
 - Backend payloads must pass local validation before execution.
-- User-facing diagnostics must redact tokens, pairing codes, prompts, backend bodies, Codex failure output, malformed payload strings, and secret-looking environment values.
+- User-facing diagnostics redact tokens, pairing codes, prompts, backend bodies, Codex failure output, malformed payload strings, and secret-looking environment values.
+- Non-localhost HTTP API URLs are rejected; use HTTPS for remote backends.
+- Config is stored in `~/.ai-subscription-bridge/config.json` with private POSIX permissions when supported.
 
 ## Development
 
